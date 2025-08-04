@@ -10,18 +10,31 @@ Version 0 (Outline)
 	This version of the script doesn’t function but was my first attempt at this program. It shows the base idea and is a simple program. This version doesn’t work because of the nature of network drives and shared folders. In order to overcome this issue I wanted to try using IPs instead. (I later learned and understood how I could use  “COMPUTER.DOMAIN”)
 	While testing using the ping command to get the IP address of the computers I noticed that most of the computers didn’t resolve themselves into IPs and from this I ditched my old method and decided to just ping all the computers on the network. This led to version 1
 
+
 Version 1
 	This is my first working version of the script. I went through several iterations of this script. Most of the meaningful changes were to have one starting file and the use of the os module in or to run CMD commands in python. Any computers that pingback for some reason I don’t understand is a drive or contains a shared folder. This version before the arguments of the ping command took around 33 hours as I added more arguments it was lowered to 22 hours. I wanted to bring that below 5 hours and I really wanted to push it to under 2 hours if possible. I started experimenting with multiprocessing and it quickly became really complicated. I ditched using pythons built in multiprocessing module because of how complicated it was and chose to generate batch files. This brings us to version 3
+
+
 Version 2
 	This version I started having problems with the system. With the way I had the program for version 2 multiprocessing wouldn’t work because BitDefender’s process would be unable to keep up with the speeds of the ping command and I would find the computer soon at 100% Memory usage. I didn’t know it at the time but it was because each line was designed to work independently from each other and EACH appended to a log. I momentarily abandoned the idea of multiprocessing and looked to speed it up as it was. I soon realized that each line opening and appending the output independently was inefficient and just wasted cpu, memory, and disk usage. I then created starter batch files which would take the list and write it to a log all at once. After running that test I came to realize why BitDefender was hogging resources and started looking back into multiprocessing through batch files. Then tested 5 processes splitting the load and based on the speed had the application around 4 hours for 70,000 computers based on the average process time.
+
+
 Version 2.5
 	This is my version as I’m working my way toward my final product. I have increased the process count to 8 processes because 9 processes have BitDefender slowly consuming more and more memory. I changed how to split the load so that they all have closer runtimes. I changed it to sort the list of computers and alternate the list between each process because most computers starting with numbers don't resolve and having a large amount changes the runtime. I figured out how to test when a process is still open by setting it to a high priority then searching for cmd processes open with priority. After doing a full test it turns out that the program takes a little under an hour. This will be increased in the next version because it will create shortcuts instead of a txt.
+
+
 Version 3
 	While testing making the shortcuts I discovered that if it takes longer than around 1.25 seconds it doesn’t have an accessible directory. Using that information I opened 10 processes to make 10 shortcuts. If after 1.25 seconds it wasn’t done I force killed the process. I wasn’t happy that it did it in batches instead of a steady stream so I’ve experimented with using the filters of taskkill to sort the powershell processes with a CPUTIME of greater than or equal to 2 seconds since it only took integers as specifiers. As it turns out a lot of system applications like powershell and cmd don’t have a CPUTIME variable and so you can’t use that method. I then made a subprocess that finds the PID of all powershell instances then kills those instances after a specified time. I also spent a day studying the subprocess module so that I could avoid the memory leaks that are caused by using os.popen().
+
+
 Version 3.5
 	Memory leaks happen when I force kill the powershell processes so I have to rework how it works. I did a lot of research on powershell. I'm going to use Test-NetConnection to the 445 port to test if it is available instead and then make the shortcut if it is.
+
+
 Version 4
 	Now that I’m more familiar with powershell I’m redoing almost the whole application so that is made up of powershell subprocesses that go through about 650 computers with one TcpClient and ComObject per process so that the system doesn’t have to clear and add them to memory. It’s more efficient overall and stops the system from going to a standstill due to excessive access of the pagefile.
+
+
 Version 5 (Final)
 	I discovered that hidden shares are a thing which are shares designated to be hidden and end with “$”. I’ve rewritten how the powershell part of the script works and now don’t need to use tcp clients. An effect of the new way to find the shares my program no longer creates shortcuts to empty computers. I used percentages of the different types of computers to try and get similar runtimes and have each one try to maximise efficiency. My last test did the how network with mt default program settings in 2 hours and 8 minutes. This is my final product. I know that some of my code could be potentially written better with functions but those changes would only save less then a second of time. I hope that my work will help the district.
 	
